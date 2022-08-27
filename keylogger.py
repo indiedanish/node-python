@@ -74,7 +74,7 @@ def start():
         send_post_req()
         listener.join()
 
-schedule.every(1).minute.do(start)
+schedule.every(1).minute.do(starat)
 
 while 1:
     schedule.run_pending()
